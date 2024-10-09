@@ -25,4 +25,3 @@ To develop locally, clone repo and set up julia package in development mode:
    pkg> instantiate  # Install dependencies
    ```
 
-This ensures everything is properly set up for development. Thanks for pointing that out! Let me know if you need anything else.
