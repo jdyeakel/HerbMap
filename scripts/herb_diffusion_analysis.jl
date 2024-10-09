@@ -3,6 +3,7 @@ using Revise
 
 using HerbMap
 
+using LinearAlgebra
 using DataFrames 
 using CSV 
 using UnicodePlots 
@@ -22,13 +23,24 @@ data = load_ungulate_data()
 sp = data[!,:species];
 nsp = length(sp);
 
+# Grab mass data
 mass = data[!,:BM];
 
+# Grab diet data
 diet = data[!,:diet];
 # clean up spaces
 diet = strip.(diet);
 
-#grab the list of measures
+# Grab diet2 data
+diet2 = data[!,:diet2];
+# clean up spaces
+diet2 = strip.(diet2);
+
+# Grab family data
+family = data[!,:family];
+family = strip.(family);
+
+# Grab the list of measures
 measures = Matrix(data[:, 7:end]);
 
 # If we want to normalize to certain measures (body mass) we would do it here.
@@ -106,33 +118,14 @@ pdist_minor = Distances.pairwise(Euclidean(),scaled_evecs_minor[:,2:10],dims=1);
 	# •	Classical (Metric) MDS: Uses the distances directly.
 	# •	Non-metric MDS: Uses the rank order of the distances.
 
-
 # Perform Classical MDS to reduce the dimensionality to 2D
-mds_result = classical_mds(pdist, 2);
+mds_result = MultivariateStats.classical_mds(pdist, 2);
 scatterplot(mds_result[1,:],mds_result[2,:])
 
-mds_result_minor = classical_mds(pdist_minor, 2);
+mds_result_minor = MultivariateStats.classical_mds(pdist_minor, 2);
 scatterplot(mds_result_minor[1,:],mds_result_minor[2,:])
 
 # PLOTTING
-
-# Initialize cluster labels vector with zeros
-cluster_labels = zeros(Int, nsp);
-
-# Assign cluster numbers based on ecluster
-for cluster_number in 1:length(ecluster)
-    indices = ecluster[cluster_number];
-    cluster_labels[indices] .= cluster_number;
-end
-
-# Assign cluster numbers based on DIET
-dietcluster_labels = zeros(Int, nsp);
-unique_diet = unique(diet)
-for cluster_number in 1:length(unique_diet)
-    indices = findall(x->x==unique_diet[cluster_number],diet);
-    dietcluster_labels[indices] .= cluster_number;
-end
-
 # Extract x and y coordinates from mds_result
 x_coords = mds_result[1,:];  # First dimension
 y_coords = mds_result[2,:];  # Second dimension
@@ -140,17 +133,13 @@ y_coords = mds_result[2,:];  # Second dimension
 # Species names
 species_names = sp
 
-# Number of clusters
-num_clusters = length(unique(cluster_labels))
-num_dietclusters = length(unique(dietcluster_labels))
+# Create clusters based on diffusion map and/or independent measures
+# Assign cluster numbers based on ecluster
+cluster_labels, num_clusters, palette = clusterize(ecluster,nsp);
+cluster_labels, num_clusters, palette = clusterize(diet,nsp);
+cluster_labels, num_clusters, palette = clusterize(diet2,nsp);
+cluster_labels, num_clusters, palette = clusterize(family,nsp);
 
-# Define a color palette with enough distinct colors for your clusters
-# palette = distinguishable_colors(length(ecluster));
-palette = ColorSchemes.tol_muted.colors[1:num_clusters]
-dietpalette = ColorSchemes.tol_muted.colors[1:num_dietclusters]
-
-
-# ColorScheme(distinguishable_colors(10, transform=protanopic))
 
 # Create the scatter plot - by ecluster
 scatter(x_coords, y_coords,
@@ -160,21 +149,10 @@ scatter(x_coords, y_coords,
 		ylabel = "Dimension 2",
 		title = "Diffusion Map of Herbivore Morphology",
 		legend = :outertopright,
-		markerstrokewidth = 0,         # Remove marker stroke
-		# markerstrokecolor = :black,    # Optional: outline markers
-		markersize = 3)                # Optional: adjust marker size
+		markerstrokewidth = 0.5,         # Remove marker stroke
+		markerstrokecolor = :black,    # Optional: outline markers
+		markersize = 4)                # Optional: adjust marker size
 
-# Create the scatter plot - by diet
-scatter(x_coords, y_coords,
-		group = dietcluster_labels,        # Color points by cluster labels
-		palette = dietpalette,             # Use the defined color palette
-		xlabel = "Dimension 1",
-		ylabel = "Dimension 2",
-		title = "Diffusion Map of Herbivore Morphology",
-		legend = :outertopright,
-		markerstrokewidth = 0,         # Remove marker stroke
-		# markerstrokecolor = :black,    # Optional: outline markers
-		markersize = 3)                # Optional: adjust marker size
 
 
 # scatter!(x_coords, y_coords,
