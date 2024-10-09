@@ -1,0 +1,11 @@
+# Ignore log files and temporary files
+*.log
+*.tmp
+*.DS_Store
+
+# Ignore any other folders in the main project directory
+../*
+
+# Keep all files within HerbMap folder
+!HerbMap/*
+
