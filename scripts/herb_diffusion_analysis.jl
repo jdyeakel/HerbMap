@@ -53,27 +53,6 @@ measures = measures ./ (mass .^(1/3));
 # Diffusion function
 evalues, evecs = diffusionmap(measures);
 
-# # Build Similarity matrix
-# PC = sim_matrix(measures);
-
-# # Construct a laplacian matrix from the PC
-# # Note: this matches the original version
-# S = laplacian(PC,10);
-
-# #Obtain the eigenvalues and eigenvectors
-# ev = eigs(S; nev=10,which=:SR);
-
-# # Subselect the Laplacian eigenvalues
-# evalues = ev[1];
-
-# # Subselect the Laplacian eigenvectors
-# evecs = ev[2];
-
-# # Assume evalues and evecs are from eigs(S)
-# # Exclude the first eigenvalue and eigenvector
-# evalues_nonzero = evalues[2:end]
-# evecs_nonzero = evecs[:, 2:end]
-
 # Scale eigenvectors by dividing by eigenvalues
 # This should serve to emphasize the larger-scale patterns in the data
 scaled_evecs = copy(evecs);
