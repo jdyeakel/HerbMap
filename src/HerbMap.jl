@@ -5,6 +5,7 @@ using DataFrames
 using LinearAlgebra 
 using ColorSchemes
 using Plots
+using Arpack 
 
 
 include("clusternames.jl")
@@ -15,6 +16,7 @@ include("laplacian.jl")
 include("sim_matrix.jl")
 include("laplacianold.jl")
 include("clusterize.jl")
+include("diffusionmap.jl")
 
 function load_ungulate_data()
     path_to_data = joinpath(@__DIR__, "..", "data", "Ungulate.data.dynamic.modeling.csv")
@@ -61,7 +63,22 @@ end
 
 
 # export any necessary functions
-export clusternames, eigencluster, eigenclusterold, eigendistance, laplacian, laplacianold, sim_matrix, load_ungulate_data, load_primate_data, clusterize
+export 
+
+load_ungulate_data, 
+load_primate_data,
+
+sim_matrix,
+laplacian,
+eigendistance,
+eigencluster,
+diffusionmap,
+
+clusterize, 
+clusternames,
+
+eigenclusterold,
+laplacianold
 
 # double_centering, classical_mds,
 

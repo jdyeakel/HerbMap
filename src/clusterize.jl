@@ -1,9 +1,11 @@
 function clusterize(category,nsp)
 
     cluster_labels = zeros(Int, nsp);
+    unique_cat = String[];
 
     if isa(category, Vector{<:Vector})
         
+        unique_cat = ["C$i" for i in 1:length(category)];
         for cluster_number in 1:length(category)
             indices = category[cluster_number];
             cluster_labels[indices] .= cluster_number;
@@ -23,6 +25,8 @@ function clusterize(category,nsp)
 
     palette = ColorScheme(distinguishable_colors(num_clusters, transform=protanopic))
 
-    return cluster_labels, num_clusters, palette
+    cluster_legend = reshape(string.(unique_cat), 1, :);
+
+    return cluster_labels, num_clusters, cluster_legend, palette
 
 end

@@ -16,6 +16,7 @@ using Arpack
 using Distances
 using Plots
 using ColorSchemes
+using Distributions
 
 
 data = load_ungulate_data()
@@ -47,23 +48,26 @@ measures = Matrix(data[:, 7:end]);
 # raise mass to 1/3 because mass scales with the cube of linear dimensions
 # SO THIS ASSUMES THESE MEASURES ARE LINEAR DIMENSIONS
 # Area measures should be divided by mass^2/3
-measures = measures ./ (mass .^(1/3))
+measures = measures ./ (mass .^(1/3));
 
-# Build Similarity matrix
-PC = sim_matrix(measures);
+# Diffusion function
+evalues, evecs = diffusionmap(measures);
 
-# Construct a laplacian matrix from the PC
-# Note: this matches the original version
-S = laplacian(PC,10);
+# # Build Similarity matrix
+# PC = sim_matrix(measures);
 
-#Obtain the eigenvalues and eigenvectors
-ev = eigs(S; nev=10,which=:SR);
+# # Construct a laplacian matrix from the PC
+# # Note: this matches the original version
+# S = laplacian(PC,10);
 
-# Subselect the Laplacian eigenvalues
-evalues = ev[1];
+# #Obtain the eigenvalues and eigenvectors
+# ev = eigs(S; nev=10,which=:SR);
 
-# Subselect the Laplacian eigenvectors
-evecs = ev[2];
+# # Subselect the Laplacian eigenvalues
+# evalues = ev[1];
+
+# # Subselect the Laplacian eigenvectors
+# evecs = ev[2];
 
 # # Assume evalues and evecs are from eigs(S)
 # # Exclude the first eigenvalue and eigenvector
@@ -133,12 +137,13 @@ y_coords = mds_result[2,:];  # Second dimension
 # Species names
 species_names = sp
 
+# PICK ONE
 # Create clusters based on diffusion map and/or independent measures
 # Assign cluster numbers based on ecluster
-cluster_labels, num_clusters, palette = clusterize(ecluster,nsp);
-cluster_labels, num_clusters, palette = clusterize(diet,nsp);
-cluster_labels, num_clusters, palette = clusterize(diet2,nsp);
-cluster_labels, num_clusters, palette = clusterize(family,nsp);
+cluster_labels, num_clusters, cluster_legend, palette = clusterize(ecluster,nsp);
+cluster_labels, num_clusters, cluster_legend, palette = clusterize(diet,nsp);
+cluster_labels, num_clusters, cluster_legend, palette = clusterize(diet2,nsp);
+cluster_labels, num_clusters, cluster_legend, palette = clusterize(family,nsp);
 
 
 # Create the scatter plot - by ecluster
@@ -149,6 +154,7 @@ scatter(x_coords, y_coords,
 		ylabel = "Dimension 2",
 		title = "Diffusion Map of Herbivore Morphology",
 		legend = :outertopright,
+		label = cluster_legend,
 		markerstrokewidth = 0.5,         # Remove marker stroke
 		markerstrokecolor = :black,    # Optional: outline markers
 		markersize = 4)                # Optional: adjust marker size
