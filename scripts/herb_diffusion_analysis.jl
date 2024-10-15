@@ -3,52 +3,72 @@ using Revise
 
 using HerbMap
 
-using LinearAlgebra
-using DataFrames 
-using CSV 
+using CSV
+using DataFrames
+using LinearAlgebra 
+using ColorSchemes
+using Plots
+using Arpack 
+
 using UnicodePlots 
 using RCall 
 using Combinatorics 
 using MultivariateStats 
 using ProgressMeter 
 using SharedArrays 
-using Arpack 
 using Distances
-using Plots
-using ColorSchemes
 using Distributions
+using GLM
 
 
+################## LOADING AND RUNNING UNGULATE DATA ##################
 data = load_ungulate_data()
-
 sp = data[!,:species];
 nsp = length(sp);
-
-# Grab mass data
 mass = data[!,:BM];
-
-# Grab diet data
+# Grab the list of measures
+start_index = 8; #measures start at column 8
+measures = Matrix(data[:, start_index:end]); 
+# Scale linear measures by mass^1/3
+measures = measures ./ (mass .^(1/3));
+# Grab diet, diet2, family data
 diet = data[!,:diet];
-# clean up spaces
 diet = strip.(diet);
-
-# Grab diet2 data
 diet2 = data[!,:diet2];
-# clean up spaces
 diet2 = strip.(diet2);
-
-# Grab family data
 family = data[!,:family];
 family = strip.(family);
+########################################################################
 
-# Grab the list of measures
-measures = Matrix(data[:, 7:end]);
 
-# If we want to normalize to certain measures (body mass) we would do it here.
-# raise mass to 1/3 because mass scales with the cube of linear dimensions
-# SO THIS ASSUMES THESE MEASURES ARE LINEAR DIMENSIONS
-# Area measures should be divided by mass^2/3
-measures = measures ./ (mass .^(1/3));
+
+################## LOADING AND RUNNING PRIMATE DATA ##################
+data = load_primate_data()
+mass = data[!,:Body_mass];
+# Send back which data types are area (i.e. not linear)
+col_names = names(data);
+area_columns_positions = findall(x -> occursin("area", x), col_names)
+start_index = 6; #measures start at column 6
+# rescale to new start of data
+area_columns_positions = area_columns_positions .- (start_index - 1)
+measures = Matrix(data[:, start_index:end]); 
+for i=1:(size(measures)[2])
+	# if in(i,area_columns_positions)
+	# 	measures[:,i] = measures[:,i] ./ mass .^(2/3) # area scaled to mass^2/3
+	# else
+	# 	measures[:,i] = measures[:,i] ./ mass .^(1/3) # linear scaled to mass^1/3
+	# end
+	# OR WE COULD EXTRACT THE MEASURED SLOPE FROM DATA AND SCALE
+	empslope = coef(lm(@formula(y ~ x), DataFrame(x=log.(mass),y=log.(measures[:,i]))))[2];
+	measures[:,i] ./ mass .^(empslope);
+end
+sp = data[!,:Species];
+nsp = length(sp);
+diet = data[!,:Diet];
+######################################################################
+
+
+
 
 # Diffusion function
 evalues, evecs = diffusionmap(measures);

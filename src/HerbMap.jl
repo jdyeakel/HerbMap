@@ -25,7 +25,8 @@ end
 
 function load_primate_data()
     path_to_data = joinpath(@__DIR__, "..", "data", "Primate.dental.data.dynamic.modeling.csv")
-    return CSV.read(path_to_data, DataFrame)
+    data = CSV.read(path_to_data, DataFrame);
+    return data
 end
 
 # # NOTE: THIS FUNCTION IS NOT BEING USED
